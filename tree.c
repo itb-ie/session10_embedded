@@ -25,6 +25,7 @@ int height(t_node *node) {
 }
 
 t_node* rotate_right(t_node *z) {
+    printf("Rotate right for node with value %d\n", z->value);
     t_node *y = z->left;
     t_node *t3 = y->right;
 
@@ -39,6 +40,7 @@ t_node* rotate_right(t_node *z) {
 }
 
 t_node* rotate_left(t_node *z) {
+    printf("Rotate left for node with value %d\n", z->value);
     t_node *y = z->right;
     t_node *t2 = y->left;
 
@@ -64,6 +66,43 @@ t_node* insert_node(t_node *root, int value) {
         root->left = insert_node(root->left, value);
     } else {
         root->right = insert_node(root->right, value);
+    }
+    return root;
+}
+
+
+t_node* insert_avl(t_node *root, int value) {
+    if (root == NULL) {
+        t_node *temp = create_node(value);
+        return temp;
+    }
+    //now insert via recursion
+    if (root->value == value) {
+        return root;
+    } else if (root->value > value) {
+        root->left = insert_avl(root->left, value);
+    } else {
+        root->right = insert_avl(root->right, value);
+    }
+
+    // are we still balanced? after the addition is done
+    root->height = 1 + max(height(root->left), height(root->right));
+
+    int bf = height(root->left) - height(root->right);
+//    printf("val=%d, left-height=%d right-height=%d  bf=%d\n", root->value, height(root->left), height(root->right), bf);
+
+    if (bf < -1 || bf > 1)
+        printf("Adding element %d unbalanced the tree, need to rebalance\n", value);
+    if (bf > 1 && value < root->left->value)
+        root = rotate_right(root);
+    else if (bf < -1 && value > root->right->value)
+        root = rotate_left(root);
+    else if (bf > 1 && value > root->left->value) {
+        root->left = rotate_left(root->left);
+        root = rotate_right(root);
+    } else if (bf < -1 && value < root->right->value) {
+        root->right = rotate_right(root->right);
+        root = rotate_left(root);
     }
     return root;
 }
@@ -114,4 +153,15 @@ void display_tree(t_node *root, t_list *start, int level) {
     }
     if (level == 0)
         printf("\n");
+}
+
+bool find_in_avl(t_node *root, int value) {
+    if (root == NULL)
+        return false;
+    if (root->value == value)
+        return true;
+    if (value < root->value)
+        return find_in_avl(root->left, value);
+    else
+        return find_in_avl(root->right, value);
 }
